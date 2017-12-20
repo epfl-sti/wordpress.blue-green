@@ -1,0 +1,68 @@
+[% PERL %]
+
+# "blue-green" deployment scheme for the Web STI stack
+#
+# This template renders the nginx.conf file, picking up either "green" or blue"
+# as the back-end server depending on the contents of /lb/MASTER and the value
+# of $ARGV[1] (either "PROD" or "DEV").
+
+use strict;
+use warnings; no warnings "redefine";
+
+use PoorMansFileSlurp;
+use PoorMansLog4Perl;
+
+die unless defined $ARGV[1];
+our $role = $ARGV[1] =~ m/prod/i ? 'prod' : 'backup';
+
+our $color;
+do {
+  my $active_color = read_file("/lb/MASTER");
+  my %color2role;
+  if ($active_color =~ m/blue/i) {
+    %color2role = ('prod' => 'blue', 'backup' => 'green');
+  } elsif ($active_color =~ m/green/i) {
+    %color2role = ('prod' => 'green', 'backup' => 'blue');
+  } else {
+    LOGDIE "Unable to interpret contents of /lb/MASTER";
+  }
+  $color = $color2role{$role};
+};
+
+[% END %]
+
+worker_processes  5;
+events {
+  worker_connections  4096;  ## Default: 1024
+}
+
+http {
+    server {
+        listen 443;
+        ssl on;
+        ssl_certificate        /etc/ssl/sti.epfl.ch.crt;
+        ssl_certificate_key    /etc/ssl/sti.epfl.ch.key;
+
+        proxy_connect_timeout   1s;
+        proxy_send_timeout   10s;
+
+        location = /lb/50x.html {
+            internal;
+            root /;
+        }
+
+        location / {
+            proxy_set_header HOST $host;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            proxy_pass http://wp-[% color %];
+            error_page 500 /lb/50x.html;
+            error_page 501 /lb/50x.html;
+            error_page 502 /lb/50x.html;
+            error_page 503 /lb/50x.html;
+            error_page 504 /lb/50x.html;
+        }
+    }
+}

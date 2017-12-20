@@ -1,0 +1,75 @@
+# docker-compose.yml to use with Docker swarm (*not* docker-compose,
+# except for building images)
+#
+# To deploy changes, type
+#
+# docker stack deploy -c docker-compose.yml web-sti
+#
+# Careful: changes will be effected in real time and might cause a
+# temporary outage, depending on what exactly the changes are!!
+version: "3.3"
+services:
+  wp-blue:
+    image: nginx
+    networks:
+      blue:
+        aliases:
+          - wp
+    volumes:
+      - "./blue/web:/usr/share/nginx/html:ro"
+  db-blue:
+    image: busybox
+    command: sleep 36000
+    networks:
+      blue:
+        aliases:
+          - db
+  wp-green:
+    image: nginx
+    networks:
+      green:
+        aliases:
+          - wp
+    volumes:
+      - "./green/web:/usr/share/nginx/html:ro"
+  db-green:
+    image: busybox
+    command: sleep 36000
+    networks:
+      green:
+        aliases:
+          - db
+
+  lb-prod:
+    image: nginx
+    volumes:
+      - "./ssl:/etc/ssl"
+      - "./lb:/lb"
+    command: /lb/nginx-wrangler /lb/nginx.conf.tt PROD
+    networks:
+      blue:
+      green:
+    ports:
+      - "443:443"
+
+  lb-dev:
+    image: nginx
+    volumes:
+      - "./ssl:/etc/ssl"
+      - "./lb:/lb"
+    command: /lb/nginx-wrangler /lb/nginx.conf.tt DEV
+    networks:
+      blue:
+      green:
+    ports:
+      - "444:443"
+
+  # 30x-redirect all traffic from external HTTP port to HTTP/S.
+  redirect:
+    image: quay.io/coreos/nginx-https-redirect
+    ports:
+      - "80:80"
+# "Blue-green" deployment is in play.
+networks:
+  blue:
+  green:

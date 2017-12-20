@@ -1,0 +1,66 @@
+#!/usr/bin/perl -w
+
+# Keep nginx in check; SIGHUP it whenever the configuration changes
+
+use strict; use warnings;
+
+use lib "/lb";
+use FauxTemplate;
+use PoorMansLog4Perl;
+
+use POSIX ":sys_wait_h";
+use Carp;
+
+$SIG{ __DIE__ } = sub {
+  Carp::confess( @_ );
+  sleep(30);  # For debugging
+};
+
+our ($config_template) = @ARGV;
+
+sub interpolated_config {
+  local *CONFIG_TMPL;
+  open(CONFIG_TMPL, "<", $config_template) or LOGDIE "open($config_template): $!";
+  return interpolate(<CONFIG_TMPL>);
+}
+
+sub configure_nginx {
+  my ($config) = @_;
+  local *CONFIG;
+  open(CONFIG, ">", "/etc/nginx/nginx.conf.NEW.$$")
+    or LOGDIE "Unable to open /etc/nginx/nginx.conf.NEW.$$ for writing: $!";
+  do { (print CONFIG $config) && (close CONFIG) }
+    or LOGDIE "Unable to close /etc/nginx/nginx.conf.NEW.$$: $!";
+  rename("/etc/nginx/nginx.conf.NEW.$$", "/etc/nginx/nginx.conf")
+    or LOGDIE "Unable to rename /etc/nginx/nginx.conf.NEW.$$ to /etc/nginx/nginx.conf: $!";
+}
+
+sub watch_nginx {
+  configure_nginx(my $config = interpolated_config);
+  exec("nginx", "-g", "daemon off;") unless my $pid = fork();
+  WARN "nginx started\n";
+
+  while(sleep 5) {
+    if ( 0 != waitpid($pid, WNOHANG) ) {
+      LOGDIE "nginx exited with " .
+        ( ($? & 127)
+          ? "signal $?"
+          : "exit code " . ($? >> 8)
+        );
+    }
+    my $newconfig;
+    eval {
+      $newconfig = interpolated_config;
+    } or do {
+      WARN "Exception during reconfiguration: $@";
+      next;  # Hope it improves later
+    };
+    next if ($config eq $newconfig);   # No change
+    WARN "Configuration changed - Restarting nginx\n";
+    $config = $newconfig;
+    configure_nginx($config);
+    kill HUP => $pid;
+  }
+}
+
+watch_nginx(); LOGDIE "watch_nginx should not return";
