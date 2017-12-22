@@ -9,37 +9,6 @@
 # temporary outage, depending on what exactly the changes are!!
 version: "3.3"
 services:
-  wp-blue:
-    image: nginx
-    networks:
-      blue:
-        aliases:
-          - wp
-    volumes:
-      - "./blue/web:/usr/share/nginx/html:ro"
-  db-blue:
-    image: busybox
-    command: sleep 36000
-    networks:
-      blue:
-        aliases:
-          - db
-  wp-green:
-    image: nginx
-    networks:
-      green:
-        aliases:
-          - wp
-    volumes:
-      - "./green/web:/usr/share/nginx/html:ro"
-  db-green:
-    image: busybox
-    command: sleep 36000
-    networks:
-      green:
-        aliases:
-          - db
-
   lb-prod:
     image: nginx
     volumes:
@@ -69,7 +38,11 @@ services:
     image: quay.io/coreos/nginx-https-redirect
     ports:
       - "80:80"
-# "Blue-green" deployment is in play.
+# "Blue-green" deployment is in play. See subdirectories ja
 networks:
   blue:
+    external:
+      name: jahia2wpblue_default
   green:
+    external:
+      name: jahia2wpgreen_default
