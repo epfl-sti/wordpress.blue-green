@@ -61,9 +61,19 @@ backup-db:
 BACKUPFILE = /srv/sti.epfl.ch/backup/$(MASTER)/backup-$(shell date +%Y%m%d-%H:%M:%S).tgz
 .PHONY: backup
 backup: backup-mgmt backup-db
-	cd $(srv-backup-path-outside); tar zcf $(BACKUPFILE) .
+	cp -a scripts/restore.sh $(srv-backup-path-outside)/
+	cd $(srv-backup-path-outside); tar zcf $(BACKUPFILE) *
 	ln -sf $(shell basename $(BACKUPFILE)) /srv/sti.epfl.ch/backup/$(MASTER)/latest.tgz
 
+.PHONY: restore
+restore:
+	@-docker exec -it $(call docker-id,mgmt,$(STANDBY)) rm -rf /tmp/restore
+# The "wp media regenerate" command needs GD:
+	@$(call apt-install,mgmt,php7.0-gd,$(STANDBY))
+	$(call in-docker-mgmt,$(STANDBY)) mkdir /tmp/restore
+	docker cp -L /srv/sti.epfl.ch/backup/$(MASTER)/latest.tgz $(call docker-id,mgmt,$(STANDBY)):/tmp/restore/
+	$(call in-docker-mgmt,$(STANDBY)) tar -C/tmp/restore -zxvf /tmp/restore/latest.tgz restore.sh
+	$(call in-docker-mgmt,$(STANDBY)) /tmp/restore/restore.sh
 
 ###################################################################
 # Global targets (apply to both instances)
@@ -97,10 +107,12 @@ in-docker-httpd = docker exec $(call docker-id,httpd,$(1))
 # or     $(call in-docker-db,blue) bash -c whatever
 in-docker-db = docker exec --user=mysql $(call docker-id,db,$(1))
 
-master-wp = $(in-docker-mgmt) wp --path=/srv/$(WP_ENV)/$(SITE_NAME)/htdocs/
+master-wp  = $(in-docker-mgmt) wp --path=/srv/$(WP_ENV)/$(SITE_NAME)/htdocs/
+standby-wp = $(call in-docker-mgmt,$(STANDBY)) wp --path=/srv/$(STANDBY)/$(SITE_NAME)/htdocs/
 
 # Usage: @$(call apt-install,mgmt,php7.0-xml)
-apt-install = docker exec $(call docker-id,$(1)) apt -y install $(2) >/dev/null 2>&1
+# or     @$(call apt-install,mgmt,php7.0-xml,blue)
+apt-install = docker exec $(call docker-id,$(1),$(3)) apt -y install $(2) >/dev/null 2>&1
 
 # Usage: $(docker-htdocs)
 # or     $(call docker-htdocs,blue)
