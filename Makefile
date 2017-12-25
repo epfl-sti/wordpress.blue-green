@@ -58,7 +58,7 @@ backup-db:
 	$(in-docker-db) bash -c 'exec mysqldump --all-databases -uroot -p"$$MYSQL_ROOT_PASSWORD"' \
 	  > $(srv-backup-path-outside)/dump-all.sql
 
-BACKUPFILE = /srv/sti.epfl.ch/backup/$(MASTER)/backup-$(shell date +%Y%m%d-%H:%m:%S).tgz
+BACKUPFILE = /srv/sti.epfl.ch/backup/$(MASTER)/backup-$(shell date +%Y%m%d-%H:%M:%S).tgz
 .PHONY: backup
 backup: backup-mgmt backup-db
 	cd $(srv-backup-path-outside); tar zcf $(BACKUPFILE) .
