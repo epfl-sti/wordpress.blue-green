@@ -64,10 +64,6 @@ backup: backup-mgmt backup-db
 	cd $(srv-backup-path-outside); tar zcf $(BACKUPFILE) .
 	ln -sf $(shell basename $(BACKUPFILE)) /srv/sti.epfl.ch/backup/$(MASTER)/latest.tgz
 
-.PHONY: _help
-_help:
-	$(in-docker-db) mysqldump --all-databases
-
 
 ###################################################################
 # Global targets (apply to both instances)
