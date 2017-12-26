@@ -3,6 +3,9 @@
 # Zero-effort restore script to be embedded in tgz backups.
 # Made to work in pre-prod as well as on one's own laptop.
 
+set -e
+
+
 die() {
     echo >&2 "$@"
     exit 2
@@ -25,13 +28,15 @@ case "$($find_cmd|wc -l)" in
     *)
         die "Multiple htdocs directories found under /srv/, bailing out in confusion" ;;
 esac
+WP="wp --path=$htdocs"
 
-set -e -x
+wp_import () {
+    set -x
 
-cd "$(dirname "$tgz_path")"
+    cd "$(dirname "$tgz_path")"
 
-tar -zxvf "$tgz_path" wordpress.xml
-cat > import_no_ssl.php <<"EOF"
+    tar -zxvf "$tgz_path" wordpress.xml
+    cat > import_no_ssl.php <<"EOF"
 <?php
 /**
  * Disable SSL checks during "wp import"
@@ -42,6 +47,15 @@ WP_CLI::add_wp_hook('http_request_args', function ( $args, $url ) {
 	return $args;
 }, 10, 2);
 EOF
-tar -C"$htdocs" -zxvf "$tgz_path" wp-content/
-wp --path="$htdocs" import --require="./import_no_ssl.php" --authors=skip wordpress.xml
-wp --path="$htdocs" media regenerate --yes
+    $WP import --require="./import_no_ssl.php" --authors=skip wordpress.xml
+    $WP media regenerate --yes
+    set +x
+}
+
+case "$1" in
+    --empty)
+        set -x
+        $WP site empty --uploads --yes
+        ;;
+esac
+wp_import

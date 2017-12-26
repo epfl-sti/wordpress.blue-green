@@ -11,6 +11,7 @@ help:
 	$(_v) ""
 	$(_v) "        make backup"
 	$(_v) "        make restore"
+	$(_v) "        make restore FLAGS=--empty"
 	$(_v) "        make gitpull"
 	$(_v) ""
 	$(_v) "The following commands act on both instances:"
@@ -95,7 +96,7 @@ restore:
 	$(call in-docker-mgmt,$(STANDBY)) mkdir /tmp/restore
 	docker cp -L /srv/sti.epfl.ch/backup/$(MASTER)/latest.tgz $(call docker-id,mgmt,$(STANDBY)):/tmp/restore/
 	$(call in-docker-mgmt,$(STANDBY)) tar -C/tmp/restore -zxvf /tmp/restore/latest.tgz restore.sh
-	$(call in-docker-mgmt,$(STANDBY)) /tmp/restore/restore.sh
+	$(call in-docker-mgmt,$(STANDBY)) /tmp/restore/restore.sh $(FLAGS)
 
 .PHONY: gitpull
 gitpull:
