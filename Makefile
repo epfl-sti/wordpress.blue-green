@@ -96,6 +96,11 @@ restore:
 	$(call in-docker-mgmt,$(STANDBY)) tar -C/tmp/restore -zxvf /tmp/restore/latest.tgz restore.sh
 	$(call in-docker-mgmt,$(STANDBY)) /tmp/restore/restore.sh
 
+.PHONY: gitpull
+gitpull:
+	@find "jahia2wp_$(STANDBY)"/htdocs/wp-content/ -name .git -print0| \
+	    xargs -0 -i bash -c 'set -e -x; cd "$$(dirname {})"; git pull --ff-only'
+
 ###################################################################
 # Global targets (apply to both instances)
 ###################################################################
