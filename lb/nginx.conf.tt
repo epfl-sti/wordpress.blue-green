@@ -59,6 +59,8 @@ http {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
             proxy_pass https://httpd.jahia2wp[% color %]_default;
+            add_header X-Favorite-Color [% color %];
+
             error_page 500 /lb/50x.html;
             error_page 501 /lb/50x.html;
             error_page 502 /lb/50x.html;
