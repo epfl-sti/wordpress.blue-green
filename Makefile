@@ -1,4 +1,25 @@
 ###################################################################
+# Master Makefile for the sti{,-test}.epfl.ch blue/green deployment
+#
+
+.PHONY: help
+_v:=@echo >&2
+help:
+	$(_v) "Unless specifically told otherwise, the following targets read from the master"
+	$(_v) "instance (as determined by the contents of the lb/MASTER file) and write to"
+	$(_v) "the standby instance:"
+	$(_v) ""
+	$(_v) "        make backup"
+	$(_v) "        make restore"
+	$(_v) ""
+	$(_v) "The following commands act on both instances:"
+	$(_v) ""
+	$(_v) "        make perms"
+	$(_v) ""
+	$(_v) "Read the Makefile for more (look for .PHONY rules)"
+
+
+###################################################################
 # Constants
 ###################################################################
 SITE_NAME := sti-test.epfl.ch
