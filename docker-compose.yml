@@ -20,6 +20,7 @@ services:
       green:
     ports:
       - "443:443"
+    restart: always
 
   lb-dev:
     image: nginx
@@ -32,13 +33,17 @@ services:
       green:
     ports:
       - "444:443"
+    restart: always
 
   # 30x-redirect all traffic from external HTTP port to HTTP/S.
   redirect:
     image: quay.io/coreos/nginx-https-redirect
     ports:
       - "80:80"
-# "Blue-green" deployment is in play. See subdirectories ja
+    restart: always
+
+# "Blue-green" deployment is in play. See
+# jahia2wp_{blue,green}/docker-compose.xml
 networks:
   blue:
     external:
