@@ -75,11 +75,14 @@ backup-mgmt:
 	  rsync -0av --files-from /srv/backup/uploads_manifest          \
 	  . /srv/backup/"
 
-# The SQL dump is just for belt+suspenders; we only use the xml file for restore
 .PHONY: backup-db
 backup-db:
-	$(in-docker-db) bash -c 'exec mysqldump --all-databases -uroot -p"$$MYSQL_ROOT_PASSWORD"' \
-	  > $(srv-backup-path-outside)/dump-all.sql
+	$(call mysqldump,$(dbname)) \
+	  | perl -pe 'if (! $$done && s|Host: localhost|host: db-$(MASTER)|g) { $$done++; }' \
+	  > $(srv-backup-path-outside)/dump-wp.sql
+# dump-all.sql is just for belt+suspenders
+	$(call mysqldump,--all-databases) \
++	  > $(srv-backup-path-outside)/dump-all.sql
 
 BACKUPFILE = /srv/sti.epfl.ch/backup/$(MASTER)/backup-$(shell date +%Y%m%d-%H:%M:%S).tgz
 .PHONY: backup
@@ -147,3 +150,8 @@ apt-install = docker exec $(call docker-id,$(1),$(3)) apt -y install $(2) >/dev/
 docker-htdocs = /srv/$(if $(1),$(1),$(WP_ENV))/$(SITE_NAME)/htdocs
 
 srv-backup-path-outside = jahia2wp_$(MASTER)/volumes/srv/backup
+
+# Usage : $(call mysqldump,--all-databases)
+mysqldump = $(call in-docker-db,) bash -c 'exec mysqldump -uroot -p"$$MYSQL_ROOT_PASSWORD" $(1)'
+
+dbname = $(shell $(call in-docker-mgmt,) cat $(docker-htdocs)/wp-config.php | perl -ne "m|define.*DB_NAME'.*'(.*?)'| && print qq'\$$1\n';")
