@@ -103,8 +103,9 @@ restore:
 
 .PHONY: gitpull
 gitpull:
-	@find "jahia2wp_$(STANDBY)"/htdocs/wp-content/ -name .git -print0| \
+	@-find "jahia2wp_$(STANDBY)"/htdocs/wp-content/ -name .git -print0| \
 	    xargs -0 -i bash -c 'set -e -x; cd "$$(dirname {})"; git pull --ff-only'
+	cd "jahia2wp_$(STANDBY)"/htdocs/wp-content/themes/epfl-sti; su -s /bin/bash www-data -c 'npm i'
 
 ###################################################################
 # Global targets (apply to both instances)
