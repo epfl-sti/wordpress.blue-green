@@ -41,9 +41,8 @@ wp_import () {
  * Disable SSL checks during "wp import"
  */
 WP_CLI::add_wp_hook('http_request_args', function ( $args, $url ) {
-    error_log("http_request_args for $url");
-	$args['sslverify'] = false;
-	return $args;
+    $args['sslverify'] = false;
+    return $args;
 }, 10, 2);
 EOF
     $WP import --require="./import_no_ssl.php" --authors=skip wordpress.xml
