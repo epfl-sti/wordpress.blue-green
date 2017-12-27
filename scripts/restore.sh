@@ -32,7 +32,6 @@ WP="wp --path=$htdocs"
 
 wp_import () {
     set -x
-
     cd "$(dirname "$tgz_path")"
 
     tar -zxvf "$tgz_path" wordpress.xml
@@ -52,10 +51,26 @@ EOF
     set +x
 }
 
+wp_mirror () {
+    dbname=$(perl -ne "m|define.*DB_NAME'.*'(.*?)'| && print qq'\$1\n';" < "$htdocs"/wp-config.php)
+    set -x
+    cd "$(dirname "$tgz_path")"
+    tar -C "$htdocs" -zxvf "$tgz_path" wp-content/
+    tar -zxvf "$tgz_path" dump-wp.sql
+    mysql -u "$MYSQL_SUPER_USER" --password="$MYSQL_SUPER_PASSWORD" -h "$MYSQL_DB_HOST" "$dbname" < dump-wp.sql
+    set +x
+}
+
 case "$1" in
     --empty)
         set -x
         $WP site empty --uploads --yes
+        wp_import
+        ;;
+    "")
+        wp_import
+        ;;
+    --mirror)
+        wp_mirror
         ;;
 esac
-wp_import

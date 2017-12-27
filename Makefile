@@ -11,7 +11,7 @@ help:
 	$(_v) ""
 	$(_v) "        make backup"
 	$(_v) "        make restore"
-	$(_v) "        make restore FLAGS=--empty"
+	$(_v) "        make restore FLAGS=--mirror"
 	$(_v) "        make gitpull"
 	$(_v) ""
 	$(_v) "The following commands act on both instances:"
