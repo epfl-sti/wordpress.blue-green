@@ -68,6 +68,9 @@ wp_mirror () {
     tar -C "$htdocs" -zxvf "$tgz_path" wp-content/
     tar -zxvf "$tgz_path" dump-wp.sql
     mysql_wrapper "$dbname" dump-wp.sql
+    set -x
+    $WP media regenerate --yes
+    set +x
 }
 
 mysql_wrapper () {
