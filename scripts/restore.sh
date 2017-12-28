@@ -56,8 +56,12 @@ wp_mirror () {
     cd "$(dirname "$tgz_path")"
     tar -C "$htdocs" -zxvf "$tgz_path" wp-content/
     tar -zxvf "$tgz_path" dump-wp.sql
-    mysql -u "$MYSQL_SUPER_USER" --password="$MYSQL_SUPER_PASSWORD" -h "$MYSQL_DB_HOST" "$dbname" < dump-wp.sql
+    mysql_wrapper "$dbname" dump-wp.sql
+}
+
+mysql_wrapper () {
     set +x
+    mysql -u "$MYSQL_SUPER_USER" --password="$MYSQL_SUPER_PASSWORD" -h "$MYSQL_DB_HOST" "$1" < "$2"
 }
 
 case "$1" in
