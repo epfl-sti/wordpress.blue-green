@@ -39,6 +39,8 @@ ensure_installed () {
 }
 
 wp_import () {
+    ensure_installed php7.0-gd php7.0-xml
+    $WP plugin install wordpress-importer --activate
     set -x
     cd "$(dirname "$tgz_path")"
 
@@ -59,6 +61,7 @@ EOF
 }
 
 wp_mirror () {
+    ensure_installed php7.0-gd
     dbname=$(perl -ne "m|define.*DB_NAME'.*'(.*?)'| && print qq'\$1\n';" < "$htdocs"/wp-config.php)
     set -x
     cd "$(dirname "$tgz_path")"
