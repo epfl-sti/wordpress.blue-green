@@ -19,8 +19,8 @@ else
     die "Unable to find tar.gz archive to restore"
 fi
 
-find_cmd="find /srv/ -type d -name htdocs"
-case "$($find_cmd|wc -l)" in
+htdocs_dir="$(find /srv/ \( -name ".git" -o -name "node_modules" \) -prune -false -o -type d -name htdocs)"
+case "$(echo "$htdocs_dir"|wc -l)" in
     1)
         htdocs="$($find_cmd)" ;;
     0)
@@ -28,7 +28,15 @@ case "$($find_cmd|wc -l)" in
     *)
         die "Multiple htdocs directories found under /srv/, bailing out in confusion" ;;
 esac
-WP="wp --path=$htdocs"
+WP="wp --path=$(echo $htdocs_dir)"
+
+ensure_installed () {
+    local failed=
+    for pkg in "$@"; do
+        dpkg -l "$pkg" || failed=1
+    done
+    test -z "$failed"
+}
 
 wp_import () {
     set -x
