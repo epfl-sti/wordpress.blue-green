@@ -28,7 +28,8 @@ case "$(echo "$htdocs_dir"|wc -l)" in
     *)
         die "Multiple htdocs directories found under /srv/, bailing out in confusion" ;;
 esac
-WP="wp --path=$(echo $htdocs_dir)"
+htdocs=$(echo $htdocs_dir)
+WP="wp --path=$htdocs"
 
 ensure_installed () {
     local failed=
