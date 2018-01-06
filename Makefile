@@ -13,6 +13,7 @@ help:
 	$(_v) "        make restore"
 	$(_v) "        make backup restore FLAGS=--mirror"
 	$(_v) "        make gitpull"
+	$(_v) "        make dockerbuild"
 	$(_v) ""
 	$(_v) "The following commands act on both instances:"
 	$(_v) ""
@@ -117,6 +118,15 @@ perms:
 	$(call in-docker-httpd,blue)  chmod -R g+wsX    $(call docker-htdocs,blue)
 	$(call in-docker-httpd,green) chgrp -R www-data $(call docker-htdocs,green)
 	$(call in-docker-httpd,green) chmod -R g+wsX    $(call docker-htdocs,green)
+
+.PHONY: dockerbuild epfl-os-wp
+epfl-os-wp:
+	git clone https://github.com/epfl-idevelop/epfl-os-wp.git
+
+dockerbuild:
+	@if [ ! -d epfl-os-wp ]; then $(MAKE) epfl-os-wp; fi
+	docker build -t epflidevelop/os-wp-httpd epfl-os-wp/build/httpd/
+	docker build -t epflidevelop/os-wp-mgmt epfl-os-wp/build/mgmt/
 
 ###################################################################
 # Library code
