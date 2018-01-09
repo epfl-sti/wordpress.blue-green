@@ -16,6 +16,8 @@ $SIG{ __DIE__ } = sub {
   sleep(30);  # For debugging
 };
 
+mkdir('/run/nginx');  # Necessary for nginx:alpine
+
 our ($config_template) = @ARGV;
 
 sub interpolated_config {
