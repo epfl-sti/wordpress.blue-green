@@ -10,7 +10,8 @@
 version: "3.3"
 services:
   lb-prod:
-    image: nginx
+    image: epfl-sti/nginx-lua
+    build: lb
     volumes:
       - "./ssl:/etc/ssl"
       - "./lb:/lb"
@@ -23,11 +24,16 @@ services:
     restart: always
 
   lb-dev:
-    image: nginx
+    image: epfl-sti/nginx-lua
+    build: lb
     volumes:
       - "./ssl:/etc/ssl"
       - "./lb:/lb"
     command: /lb/nginx-wrangler /lb/nginx.conf.tt DEV
+    ## If you want to test some changes to nginx.conf feel free to copy
+    ## lb/nginx.conf.tt to lb/nginx.dev.tt, comment the line above and
+    ## uncomment the one below:
+    # command: /lb/nginx-wrangler /lb/nginx.dev.tt DEV
     networks:
       blue:
       green:
@@ -40,6 +46,17 @@ services:
     image: quay.io/coreos/nginx-https-redirect
     ports:
       - "80:80"
+    restart: always
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 127.0.0.1:9090:9090
+    volumes:
+      - "./prometheus:/etc/prometheus"
+    networks:
+      blue:
+      green:
     restart: always
 
 # "Blue-green" deployment is in play. See
