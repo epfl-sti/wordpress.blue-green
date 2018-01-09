@@ -21,3 +21,25 @@ scrape_configs:
     static_configs:
       - targets:
         - lb-prod:9113
+
+  - job_name: prober-wpcron-preprod
+    scrape_interval: 60s
+    metrics_path: /probe
+    params:
+      module: [https_get_slow]
+      target: ['https://sti-test.epfl.ch/wp-cron.php']
+    scheme: http
+    static_configs:
+      - targets:
+          - stisrv6.epfl.ch:9115
+
+  - job_name: prober-wpcron-qa
+    scrape_interval: 60s
+    metrics_path: /probe
+    params:
+      module: [https_get_slow]
+      target: ['https://sti-test.epfl.ch:444/wp-cron.php']
+    scheme: http
+    static_configs:
+      - targets:
+          - stisrv6.epfl.ch:9115
