@@ -107,19 +107,38 @@ log_by_lua_block {
 [% PERL %]
 if ($has_lua) {
 [% END %]
-server {
-  listen 9113;
-  location /metrics {
-    content_by_lua_block {
-      metric_connections:set(ngx.var.connections_reading, {"reading"})
-      metric_connections:set(ngx.var.connections_waiting, {"waiting"})
-      metric_connections:set(ngx.var.connections_writing, {"writing"})
-      prometheus:collect()
+
+  # Prometheus exporter for the stats in nginx
+  server {
+    listen 9113;
+    location /metrics {
+      content_by_lua_block {
+        metric_connections:set(ngx.var.connections_reading, {"reading"})
+        metric_connections:set(ngx.var.connections_waiting, {"waiting"})
+        metric_connections:set(ngx.var.connections_writing, {"writing"})
+        prometheus:collect()
+      }
     }
   }
-}
 [% PERL %]
 }  # if ($has_lua)
 [% END %]
 
+  # A small proxy to let Prometheus scrape the /metrics of
+  # the WordPress instances
+  # Inspired from https://github.com/prometheus/prometheus/issues/1724
+  server {
+    listen 8080;
+    proxy_connect_timeout   1s;
+    proxy_send_timeout   10s;
+
+    location /blue/metrics {
+      proxy_set_header Host sti-test.epfl.ch;
+      proxy_pass http://httpd.jahia2wpblue_default/metrics;
+    }
+    location /green/metrics {
+      proxy_set_header Host sti-test.epfl.ch;
+      proxy_pass http://httpd.jahia2wpgreen_default/metrics;
+    }
+  }
 }
