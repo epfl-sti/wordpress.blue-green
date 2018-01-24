@@ -61,22 +61,27 @@ EOF
     set +x
 }
 
-wp_mirror () {
+prep_mysql_restore () {
     ensure_installed php7.0-gd
-    dbname=$(perl -ne "m|define.*DB_NAME'.*'(.*?)'| && print qq'\$1\n';" < "$htdocs"/wp-config.php)
+    DBNAME=$(perl -ne "m|define.*DB_NAME'.*'(.*?)'| && print qq'\$1\n';" < "$htdocs"/wp-config.php)
     set -x
     cd "$(dirname "$tgz_path")"
     tar -C "$htdocs" -zxvf "$tgz_path" wp-content/
     tar -zxvf "$tgz_path" dump-wp.sql
-    mysql_wrapper "$dbname" dump-wp.sql
+    set +x
+}
+
+wp_mirror () {
+    prep_mysql_restore
     set -x
+    cat dump-wp.sql | do_mysql "$DBNAME"
     $WP media regenerate --yes
     set +x
 }
 
-mysql_wrapper () {
+do_mysql () {
     set +x
-    mysql -u "$MYSQL_SUPER_USER" --password="$MYSQL_SUPER_PASSWORD" -h "$MYSQL_DB_HOST" "$1" < "$2"
+    mysql -u "$MYSQL_SUPER_USER" --password="$MYSQL_SUPER_PASSWORD" -h "$MYSQL_DB_HOST" "$1"
 }
 
 case "$1" in
