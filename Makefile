@@ -83,7 +83,7 @@ backup-db:
 	  > $(srv-backup-path-outside)/dump-wp.sql
 # dump-all.sql is just for belt+suspenders
 	$(call mysqldump,--all-databases) \
-+	  > $(srv-backup-path-outside)/dump-all.sql
+	  > $(srv-backup-path-outside)/dump-all.sql
 
 BACKUPFILE = /srv/sti.epfl.ch/backup/$(MASTER)/backup-$(shell date +%Y%m%d-%H:%M:%S).tgz
 .PHONY: backup
