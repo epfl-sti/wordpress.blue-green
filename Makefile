@@ -164,6 +164,6 @@ docker-htdocs = /srv/$(if $(1),$(1),$(WP_ENV))/$(SITE_NAME)/htdocs
 srv-backup-path-outside = jahia2wp_$(MASTER)/volumes/srv/backup
 
 # Usage : $(call mysqldump,--all-databases)
-mysqldump = $(call in-docker-db,) bash -c 'exec mysqldump -uroot -p"$$MYSQL_ROOT_PASSWORD" $(1)'
+mysqldump = $(call in-docker-db,) bash -c 'exec mysqldump --default-character-set=utf8mb4 -uroot -p"$$MYSQL_ROOT_PASSWORD" $(1)'
 
 dbname = $(shell $(call in-docker-mgmt,) cat $(docker-htdocs)/wp-config.php | perl -ne "m|define.*DB_NAME'.*'(.*?)'| && print qq'\$$1\n';")
