@@ -80,6 +80,6 @@ sub do_delete {
   if (is_dry_run) {
     say "Would delete $file";
   } else {
-    say "Would delete $file";  # XXX Replace with actual delete
+    $file->unlink;
   }
 }
