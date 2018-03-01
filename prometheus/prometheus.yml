@@ -59,7 +59,7 @@ scrape_configs:
       - targets:
           - stisrv6.epfl.ch:9115
         labels:
-          job: prober-wprcon
+          job: prober-wpcron
           role: dev
 
   - job_name: prober-wpcron-preprod
@@ -73,5 +73,5 @@ scrape_configs:
       - targets:
           - stisrv6.epfl.ch:9115
         labels:
-          job: prober-wprcon
+          job: prober-wpcron
           role: preprod
