@@ -80,6 +80,7 @@ log_by_lua_block {
 
         proxy_connect_timeout   1s;
         proxy_send_timeout   10s;
+        client_max_body_size 10M;
 
         location = /lb/50x.html {
             internal;
