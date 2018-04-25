@@ -80,7 +80,7 @@ log_by_lua_block {
 
         proxy_connect_timeout   1s;
         proxy_send_timeout   10s;
-        client_max_body_size 10M;
+        client_max_body_size 128m;
 
         location = /lb/50x.html {
             internal;
@@ -94,7 +94,7 @@ log_by_lua_block {
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
-            proxy_pass https://httpd.jahia2wp[% color %]_default;
+            proxy_pass https://httpd.jahia2wp[% color %]_default:8443;
             add_header X-Favorite-Color [% color %];
 
             error_page 500 /lb/50x.html;
@@ -135,11 +135,11 @@ if ($has_lua) {
 
     location /blue/metrics {
       proxy_set_header Host sti-test.epfl.ch;
-      proxy_pass http://httpd.jahia2wpblue_default/metrics;
+      proxy_pass http://httpd.jahia2wpblue_default:8080/metrics;
     }
     location /green/metrics {
       proxy_set_header Host sti-test.epfl.ch;
-      proxy_pass http://httpd.jahia2wpgreen_default/metrics;
+      proxy_pass http://httpd.jahia2wpgreen_default:8080/metrics;
     }
   }
 }
