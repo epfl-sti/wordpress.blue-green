@@ -29,7 +29,7 @@ SITE_NAME := sti-test.epfl.ch
 WEB_GROUP := www-data
 
 ###################################################################
-# Default target (overridable on the command line)
+# Default targets and restore path (overridable on the command line)
 ###################################################################
 
 # User is free to bypass the auto-detection of the target like this:
@@ -46,12 +46,15 @@ else
 endif
 endif
 
+RESTOREFROM = /srv/sti.epfl.ch/backup/$(MASTER)/latest.tgz
+
 include jahia2wp_$(MASTER)/.env
 
 .PHONY: _debug
 _debug:
 	@echo MASTER=$(MASTER)
 	@echo STANDBY=$(STANDBY)
+	@echo RESTOREFROM=$(RESTOREFROM)
 
 ###################################################################
 # Targets that care about which instance is master / standby
@@ -98,7 +101,7 @@ restore:
 # The "wp media regenerate" command needs GD:
 	@$(call apt-install,mgmt,php7.0-gd,$(STANDBY))
 	$(call in-docker-mgmt,$(STANDBY)) mkdir /tmp/restore
-	docker cp -L /srv/sti.epfl.ch/backup/$(MASTER)/latest.tgz $(call docker-id,mgmt,$(STANDBY)):/tmp/restore/
+	docker cp -L $(RESTOREFROM) $(call docker-id,mgmt,$(STANDBY)):/tmp/restore/latest.tgz
 	$(call in-docker-mgmt,$(STANDBY)) tar -C/tmp/restore -zxvf /tmp/restore/latest.tgz restore.sh
 	$(call in-docker-mgmt,$(STANDBY)) /tmp/restore/restore.sh $(FLAGS)
 
