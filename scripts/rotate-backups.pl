@@ -61,6 +61,10 @@ FILE: foreach my $file
      ->all_files)
   {
     my $age = $now - $file->mtime;
+    if ($age < $age_brackets[0]) {
+      debug("Sparing $file ($age less than minimum $age_brackets[0])");
+      next FILE;
+    }
     foreach my $i (0..$#age_brackets - 1) {
       my ($min_age, $max_age) = ($age_brackets[$i], $age_brackets[$i+1]);
       next unless ($age > $min_age && $age <= $max_age);
