@@ -110,7 +110,7 @@ gitpull:
 	@-find "jahia2wp_$(STANDBY)"/htdocs/wp-content/ -name .git -print0| \
 	    xargs -0 -i bash -c 'set -e -x; cd "$$(dirname {})"; git branch; git pull --ff-only'
 	cd "jahia2wp_$(STANDBY)"/htdocs/wp-content/plugins/epfl-newsletter; su -s /bin/bash www-data -c 'composer install'
-	cd "jahia2wp_$(STANDBY)"/htdocs/wp-content/themes/epfl-sti; su -s /bin/bash www-data -c 'npm i'
+	cd "jahia2wp_$(STANDBY)"/htdocs/wp-content/themes/epfl-sti; su -s /bin/bash www-data -c 'npm ci'
 
 ###################################################################
 # Global targets (apply to both instances)
