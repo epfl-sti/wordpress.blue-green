@@ -11,7 +11,7 @@ help:
 	$(_v) ""
 	$(_v) "        make backup"
 	$(_v) "        make restore"
-	$(_v) "        make backup restore FLAGS=--mirror"
+	$(_v) "        make backup restore"
 	$(_v) "        make gitpull"
 	$(_v) "        make dockerbuild"
 	$(_v) ""
@@ -46,7 +46,11 @@ else
 endif
 endif
 
-RESTOREFROM = /srv/sti.epfl.ch/backup/$(MASTER)/latest.tgz
+ifndef RESTOREFLAGS
+RESTOREFLAGS=--mirror
+endif
+
+RESTOREFROM = /srv/sti.epfl.ch/$(MASTER)-latest.tgz
 
 include jahia2wp_$(MASTER)/.env
 
@@ -55,6 +59,7 @@ _debug:
 	@echo MASTER=$(MASTER)
 	@echo STANDBY=$(STANDBY)
 	@echo RESTOREFROM=$(RESTOREFROM)
+	@echo RESTOREFLAGS=$(RESTOREFLAGS)
 
 ###################################################################
 # Targets that care about which instance is master / standby
@@ -93,7 +98,7 @@ BACKUPFILE = /srv/sti.epfl.ch/backup/$(MASTER)/backup-$(shell date +%Y%m%d-%H:%M
 backup: backup-mgmt backup-db
 	cp -a scripts/restore.sh $(srv-backup-path-outside)/
 	cd $(srv-backup-path-outside); tar zcf $(BACKUPFILE) *
-	ln -sf $(shell basename $(BACKUPFILE)) /srv/sti.epfl.ch/backup/$(MASTER)/latest.tgz
+	ln -sf backup/$(MASTER)/$(shell basename $(BACKUPFILE)) /srv/sti.epfl.ch/$(MASTER)-latest.tgz
 
 .PHONY: restore
 restore:
@@ -103,7 +108,7 @@ restore:
 	$(call in-docker-mgmt,$(STANDBY)) mkdir /tmp/restore
 	docker cp -L $(RESTOREFROM) $(call docker-id,mgmt,$(STANDBY)):/tmp/restore/latest.tgz
 	$(call in-docker-mgmt,$(STANDBY)) tar -C/tmp/restore -zxvf /tmp/restore/latest.tgz restore.sh
-	$(call in-docker-mgmt,$(STANDBY)) /tmp/restore/restore.sh $(FLAGS)
+	$(call in-docker-mgmt,$(STANDBY)) /tmp/restore/restore.sh $(RESTOREFLAGS)
 
 .PHONY: gitpull
 gitpull:
