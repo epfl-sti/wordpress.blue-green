@@ -134,11 +134,11 @@ if ($has_lua) {
     proxy_send_timeout   10s;
 
     location /blue/metrics {
-      proxy_set_header Host sti-test.epfl.ch;
+      proxy_set_header Host sti.epfl.ch;
       proxy_pass http://httpd.jahia2wpblue_default:8080/metrics;
     }
     location /green/metrics {
-      proxy_set_header Host sti-test.epfl.ch;
+      proxy_set_header Host sti.epfl.ch;
       proxy_pass http://httpd.jahia2wpgreen_default:8080/metrics;
     }
   }
