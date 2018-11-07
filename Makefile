@@ -25,7 +25,7 @@ help:
 ###################################################################
 # Constants
 ###################################################################
-SITE_NAME := sti-test.epfl.ch
+SITE_NAME := sti.epfl.ch
 WEB_GROUP := www-data
 
 ###################################################################
@@ -74,14 +74,15 @@ backup-mgmt:
 	$(master-wp) export --stdout > $(srv-backup-path-outside)/wordpress.xml
 # Save backup size by only backing up original images; we'll regenerate the others.
 	$(in-docker-mgmt) bash -c "cd $(docker-htdocs);                 \
-	    find wp-content/uploads -not \(                             \
+	    ( find wp-content/uploads -not \(                           \
 	         -type f                                                \
 	         -iregex '.*-[0-9]+x[0-9]+\.\(png\|gif\|jpg\|jpeg\)'    \
-	    \) -print0                                                  \
-	    > /srv/backup/uploads_manifest"
+	    \) -print0;                                                 \
+	    find .htaccess -print0 )                                    \
+	    > /srv/backup/backup_manifest"
 	@$(call apt-install,mgmt,rsync)
 	$(in-docker-mgmt) bash -c "cd $(docker-htdocs);                 \
-	  rsync -0av --files-from /srv/backup/uploads_manifest          \
+	  rsync -0av --files-from /srv/backup/backup_manifest           \
 	  . /srv/backup/"
 
 .PHONY: backup-db
@@ -97,7 +98,7 @@ BACKUPFILE = /srv/sti.epfl.ch/backup/$(MASTER)/backup-$(shell date +%Y%m%d-%H:%M
 .PHONY: backup
 backup: backup-mgmt backup-db
 	cp -a scripts/restore.sh $(srv-backup-path-outside)/
-	cd $(srv-backup-path-outside); tar zcf $(BACKUPFILE) *
+	cd $(srv-backup-path-outside); tar zcf $(BACKUPFILE) .??* *
 	ln -sf backup/$(MASTER)/$(shell basename $(BACKUPFILE)) /srv/sti.epfl.ch/$(MASTER)-latest.tgz
 
 .PHONY: restore
