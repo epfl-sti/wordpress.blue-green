@@ -9,7 +9,7 @@ sub _timestamp {
   my @args = @_;
   my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
   return sprintf("%d/%d/%d %d:%d:%d %s",
-                  $year + 1900, $mon, $mday,
+                  $year + 1900, $mon, $mday + 1,
                   $hour, $min, $sec,
                  join("", @args));
 }
