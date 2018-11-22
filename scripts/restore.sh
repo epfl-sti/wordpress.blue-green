@@ -66,7 +66,8 @@ prep_mysql_restore () {
     DBNAME=$(perl -ne "m|define.*DB_NAME'.*'(.*?)'| && print qq'\$1\n';" < "$htdocs"/wp-config.php)
     set -x
     cd "$(dirname "$tgz_path")"
-    tar -C "$htdocs" -zxvf "$tgz_path" wp-content/
+    tar -C "$htdocs" -zxvf "$tgz_path" wp-content/uploads/ || true
+    tar -C "$htdocs" -zxvf "$tgz_path" --exclude wp-content/uploads wp-content
     tar -zxvf "$tgz_path" dump-wp.sql
     set +x
 }
